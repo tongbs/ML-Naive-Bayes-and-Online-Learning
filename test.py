@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 tb1 = np.ones((1,1,32))
 print(tb1)
@@ -24,14 +25,11 @@ for i in range(len(a_list)):
  
 print(correct)
 
-a = []
-for i in range(10):
-	#a.append([])
-	for j in range(5):
-		a[i].append([])
 
-print(a)
+
 
 
 data_list = [[[] for i in range(5)] for j in range(10)]
 print(data_list)
+
+print(math.factorial(3))
