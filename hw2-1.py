@@ -15,7 +15,7 @@ def image_load(file):
     f = gzip.open(file,'rb')
     file_content = f.read()
     file_list = list(file_content)
-    #[0:4] magic number, [4:8]# of images, [8:12]# of rows, [12:16] # of cols
+    ##[0:4] magic number, [4:8]# of images, [8:12]# of rows, [12:16] # of cols
     num_img = bytes_to_int(file_list[4:8])
     num_row = bytes_to_int(file_list[8:12])
     num_col = bytes_to_int(file_list[12:16])
@@ -26,7 +26,7 @@ def label_load(file):
     f  = gzip.open(file,'rb')
     file_content = f.read()
     file_list = list(file_content)
-    #[0:4]magic number, [4:8]# of labels, [8:]one word one label
+    ##[0:4]magic number, [4:8]# of labels, [8:]one word one label
     num_label = bytes_to_int(file_list[4:8])
     label = np.array(file_list[8:]).reshape((num_label,1))
     return label
@@ -35,16 +35,16 @@ def train_load(toggle_option, tr_image, tr_label):
     if toggle_option == 0:
         bin_tr_image = tr_image//8
         lut = np.ones((10,784,32))
-        p_num = []  #each number(0~9) probability
+        p_num = []  ##each number(0~9) probability
         for i in range(10):
             p_num.append(0.0)
 
-        for i in range(bin_tr_image.shape[0]):   #60000
+        for i in range(bin_tr_image.shape[0]):   ##60000
             l_num = tr_label[i][0]
             p_num[l_num] += 1
-            for j in range(bin_tr_image.shape[1]):   #784
+            for j in range(bin_tr_image.shape[1]):   ##784
                 bin_num = bin_tr_image[i][j]
-                #print(l_num,j,bin_num)
+                ##print(l_num,j,bin_num)
                 lut[l_num,j,bin_num] += 1
         total = sum(p_num)
         for i in range(10):
@@ -54,7 +54,7 @@ def train_load(toggle_option, tr_image, tr_label):
             for j in range(784):
                 lut[i,j] = lut[i,j] / np.sum(lut[i,j])
         return lut, p_num
-    else:  #continuous
+    else:  ##continuous
         data = []
         lut = []
         for i in range(10):
@@ -84,28 +84,23 @@ def train_load(toggle_option, tr_image, tr_label):
                 lut[i][j]['mean'] = np.mean(data[i][j])
         return lut, p_num 
                 
-
-
-
-
 def log_likelihood(toggle_option, j, k, pixel, lut):
     if toggle_option == 0:
         return math.log(lut[j,k,pixel])
     else:
-        #print("continuous")
+        ##print("continuous")
         std = lut[j][k]['std']
         if std == 0:
             std = 40
         mean = lut[j][k]['mean']
-        #print('mean',mean)
-        #try:
-        #    likelihood = math.log(1/math.sqrt(2*math.pi*(std**2))) + (-((pixel-mean)**2)/(2*std**2))
-        #except ZeroDivisionError:
-        #    likelihood = 0
+        ##print('mean',mean)
+        ##try:
+        ##    likelihood = math.log(1/math.sqrt(2*math.pi*(std**2))) + (-((pixel-mean)**2)/(2*std**2))
+        ##except ZeroDivisionError:
+        ##    likelihood = 0
         likelihood = math.log(1/math.sqrt(2*math.pi*(std**2))) + (-((pixel-mean)**2)/(2*std**2))
         return likelihood
         
-
 def error_rate(result_list):
     correct = 0
     wrong = 0
@@ -122,7 +117,7 @@ def bayes_imagination_number(toggle_option, lut):
         print(f'{i}:')
         for j in range(784):
             if toggle_option == 0:
-                #ex. number = 7,have 784 pixel, find the maximum value in 32 bins(在該pixel上出現最多次的bit是哪個值)
+                ##ex. number = 7,have 784 pixel, find the maximum value in 32 bins(在該pixel上出現最多次的bit是哪個值)
                 bit = np.argmax(lut[i,j])*8
             else:
                 bit = lut[i][j]['mean']
@@ -134,27 +129,26 @@ def bayes_imagination_number(toggle_option, lut):
                 print()
         print()    
 
-#p_num = P(C)
+##p_num = P(C)
 def test(toggle_option, ts_image, ts_label, lut, p_num):
     if toggle_option == 0:
         ts_image //= 8
     result_list = []
-    #for i in range(1):
+
     for i in range(ts_image.shape[0]):  #10000
-        prob_img = []   #each test image for classify to [0~9] probability
+        prob_img = []   ##each test image for classify to [0~9] probability
         for j in range(10):
             log_p_num = math.log(p_num[j])
-            #print(log_p_num) #prior
+            ##print(log_p_num) #prior
             for k in range(784):
                 log_p_num = log_p_num + log_likelihood(toggle_option, j, k, ts_image[i,k], lut)
             prob_img.append(log_p_num)
-        #print("prob_img: ", prob_img)
         prob_img = np.array(prob_img)
         prob_img = prob_img / np.sum(prob_img)
-        #print(ts_label[i][0])
+        ##print(ts_label[i][0])
 
-        #for j in range(10):
-        #    print(f'{j}: Posterior (in log scale):{prob_img[j]}')
+        for j in range(10):
+            print(f'{j}: Posterior (in log scale):{prob_img[j]}')
         min_index = np.argmin(prob_img)
         Prediction = min_index
         Ans = ts_label[i][0]
@@ -164,9 +158,9 @@ def test(toggle_option, ts_image, ts_label, lut, p_num):
             result_list.append(1)
         else:
             result_list.append(0)
-    #print out imagination of number in Bayes classifier
+    ##print out imagination of number in Bayes classifier
     bayes_imagination_number(toggle_option, lut)
-    #calculate error rate
+    ##calculate error rate
     error = error_rate(result_list)
     print(f'Error rate: {error}')
 
@@ -175,27 +169,10 @@ def test(toggle_option, ts_image, ts_label, lut, p_num):
 if __name__ == "__main__":
     toggle_option = int(input("0:Discrete mode, 1:Continuous mode: "))
     if toggle_option == 0 or toggle_option == 1:
-        #tr:train ts:test
+        ##tr:train ts:test
         tr_image = image_load("train-images-idx3-ubyte.gz")
         tr_label = label_load("train-labels-idx1-ubyte.gz")
         ts_image = image_load("t10k-images-idx3-ubyte.gz")
         ts_label = label_load("t10k-labels-idx1-ubyte.gz")
         lut , p_num = train_load(toggle_option, tr_image, tr_label)
         test(toggle_option, ts_image, ts_label, lut, p_num)
-
-
-        #print(tr_label)
-        
-
-        '''
-        for i in range(1):
-            print(tr_label[i][0])
-            #print(tr_image[i].shape)
-            a = tr_image[i]//8
-            print(a)
-            #img_array = np.array(tr_image[i]).reshape(28,28)
-            #img = Image.fromarray(img_array)
-            #plt.imshow(img_array, cmap='gray')
-            #plt.show()
-            ret = (-((val-avg)**2)/(2*(std**2)))+math.log(1/(std*math.sqrt(2*math.pi)))
-        '''
